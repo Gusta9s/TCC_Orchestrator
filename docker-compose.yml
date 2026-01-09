@@ -1,0 +1,79 @@
+
+services:
+  # ----------------------------------------------------------------
+  # 1. API DE ROTAS (Node.js/Puppeteer)
+  # Gera a imagem da rota e salva no volume compartilhado
+  # ----------------------------------------------------------------
+  routing-api:
+    build: 
+      context: ../TCC-Routing-Machine-SWM
+    container_name: map-generator-app
+    restart: always
+    environment:
+      - PORT=3004
+    volumes:
+      # Mapeia o volume para onde o server.js salva as imagens
+      - shared_assets:/app/assets/images
+    networks:
+      - tcc-network
+    # Healthcheck para garantir que o Node subiu antes de ser chamado
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3004/render-map"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------------------
+  # 2. API DO MODELO (Python/Flask/YOLO)
+  # Recebe a imagem do pipeline -> Prediz -> Se >80%, chama routing-api
+  # ----------------------------------------------------------------
+  ml-api:
+    build: 
+      context: ../TCC_Model1_CNN_SWM
+    container_name: tcc-modelo-cnn
+    restart: always
+    environment:
+      # Define a URL da API de rotas para o código Python usar
+      - ROUTING_API_URL=http://routing-api:3004/api/gerar-imagem-rota
+    ports:
+      - "3001:3001"
+    networks:
+      - tcc-network
+    depends_on:
+      routing-api:
+        condition: service_healthy
+
+  # ----------------------------------------------------------------
+  # 3. PIPELINE PRINCIPAL (Python Script)
+  # Baixa do B2 -> Envia p/ ML -> Lê resultado do volume
+  # ----------------------------------------------------------------
+  pipeline-core:
+    build: 
+      context: ../TCC_workflow_data_SWM
+    container_name: pipeline-processamento
+    environment:
+      # URLs internas do Docker
+      - ML_API_URL=http://ml-api:3001/predict
+      # Configurações de diretório
+      - SECRETS_DIR=/app/repository
+      - RESULTS_DIR=/app/result
+    volumes:
+      # Lê as imagens geradas pelo routing-api e salva os resultados finais
+      - shared_assets:/app/assets/images
+      # Monta os arquivos de configuração originais (config.yaml)
+      - ../TCC_workflow_data_SWM/config.yaml:/app/config.yaml
+      # Monta os secrets (secretOrigem.env)
+      - ../TCC_workflow_data_SWM/repository:/app/repository
+      # Onde os resultados (txt) serão salvos na sua máquina real
+      - ../TCC_workflow_data_SWM/result:/app/result
+    networks:
+      - tcc-network
+    depends_on:
+      - ml-api
+
+volumes:
+  shared_assets: # O "disco" compartilhado entre os 3 containers
+
+networks:
+  tcc-network:
+    driver: bridge

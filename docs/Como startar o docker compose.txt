@@ -1,0 +1,5 @@
+1. Primeiramente abra o aplicativo docker desktop na versao mais atual;
+2. Espere o carregamento do docker engine ate ficar com status running;
+3. Nao feche o docker desktop, deixe aberto em segundo plano;
+4. Verifique se o icone da baleia esta aparecendo na parte inferior direita, abrindo seta para cima;
+5. Va para o VScode para o projeto do docker compose "TCC_Orchestrator", e no terminal execute o comando "docker compose up --build"
