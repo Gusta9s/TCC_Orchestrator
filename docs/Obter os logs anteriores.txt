@@ -1,0 +1,4 @@
+Para ver os logs de forma limpa e sequencial (sem misturar tudo), você não deve usar o comando docker compose up direto no terminal 
+interativo, pois ele agrega (attach) todos os outputs ao mesmo tempo.
+Aqui está o comando mágico para ver exatamente o que você pediu (Pipeline -> ML -> Routing): 
+"docker compose logs -f pipeline-core ml-api routing-api"
