@@ -39,9 +39,14 @@ services:
       - "3001:3001"
     networks:
       - tcc-network
-    depends_on:
-      routing-api:
-        condition: service_healthy
+    healthcheck:
+      # Tenta conectar na raiz. Se der 404 ou 200, significa que o servidor respondeu (sucesso).
+      # Se a conexão for recusada, o comando falha.
+      test: ["CMD-SHELL", "curl -s http://localhost:3001 > /dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
 
   # ----------------------------------------------------------------
   # 3. PIPELINE PRINCIPAL (Python Script)
@@ -57,6 +62,7 @@ services:
       # Configurações de diretório
       - SECRETS_DIR=/app/repository
       - RESULTS_DIR=/app/result
+      - TZ=America/Sao_Paulo
     volumes:
       # Lê as imagens geradas pelo routing-api e salva os resultados finais
       - shared_assets:/app/assets/images
@@ -69,7 +75,10 @@ services:
     networks:
       - tcc-network
     depends_on:
-      - ml-api
+      ml-api:
+        condition: service_healthy 
+      routing-api:
+        condition: service_started
 
 volumes:
   shared_assets: # O "disco" compartilhado entre os 3 containers
