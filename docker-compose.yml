@@ -11,6 +11,7 @@ services:
     restart: always
     environment:
       - PORT=3004
+      - MAPBOX_API_KEY=pk.eyJ1IjoiZ3VzdGE5cyIsImEiOiJjbWRjYnUxZDgwOXQ5MmxvaWdtYWg3MjlvIn0.7BKbWKCNgW-Gxt2gC9151g
     volumes:
       # Mapeia o volume para onde o server.js salva as imagens
       - shared_assets:/app/assets/images
