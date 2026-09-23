@@ -36,7 +36,6 @@ Os três repositórios precisam estar clonados **lado a lado**, no mesmo diretó
 
 ## Segredos e configuração
 
-- Credenciais e chaves de API (ex.: chave da Mapbox usada pela `routing-api`) são passadas como variáveis de ambiente no `docker-compose.yml` — em um ambiente real, elas devem vir de um arquivo `.env` (não versionado) ou de um gerenciador de segredos, e não ficar hardcoded no arquivo de compose.
 - Os arquivos de configuração e segredos do pipeline de dados (`config.yaml`, diretório `repository` com os arquivos de contingência) são montados como volumes a partir do repositório `TCC_workflow_data_SWM`, mantendo os segredos fora da imagem Docker.
 
 ## Como executar
